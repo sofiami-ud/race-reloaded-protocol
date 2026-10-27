@@ -1,0 +1,275 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Race Reloaded Reading Protocol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Spectral:ital,wght@0,600;1,400&display=swap">
+<style>
+/* Layout: one long top-to-bottom flow; phases as tinted horizontal bands, outcomes that stop the flow exit to the sides. */
+:root{
+  --bg:#F2F3F5; --surface:#FFFFFF; --fg:#1C1F26; --muted:#596070; --edge:#3B4150; --rule:#D5D8DF;
+  --p0:#94660F; --b0:#F5EDDC; --n0:#FFF9EC;
+  --p1:#28598A; --b1:#E6EDF5; --n1:#F7FAFD; --n1s:#D2E1F0;
+  --p2:#9A4720; --b2:#F5EAE3; --n2:#FDF8F5; --n2s:#EFD3C3;
+  --bu:#ECEDF0; --bo:#E9EAEE;
+  --stop:#B3261E; --stopbg:#FBE9E7;
+  --display:"Spectral",Georgia,serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15171C; --surface:#1E2128; --fg:#E7E9EE; --muted:#A1A8B6; --edge:#B7BDC9; --rule:#33373F;
+  --p0:#DDB15E; --b0:#221E15; --n0:#2A2519;
+  --p1:#7FB0E0; --b1:#151C25; --n1:#1A2330; --n1s:#21364D;
+  --p2:#E39A72; --b2:#231A16; --n2:#2A201B; --n2s:#4A2D20;
+  --bu:#1A1C21; --bo:#1A1C21;
+  --stop:#F08A80; --stopbg:#3A1E1C; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#15171C; --surface:#1E2128; --fg:#E7E9EE; --muted:#A1A8B6; --edge:#B7BDC9; --rule:#33373F;
+  --p0:#DDB15E; --b0:#221E15; --n0:#2A2519;
+  --p1:#7FB0E0; --b1:#151C25; --n1:#1A2330; --n1s:#21364D;
+  --p2:#E39A72; --b2:#231A16; --n2:#2A201B; --n2s:#4A2D20;
+  --bu:#1A1C21; --bo:#1A1C21;
+  --stop:#F08A80; --stopbg:#3A1E1C; color-scheme:dark }
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--body)}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:32px 48px;display:grid;gap:24px}
+header{display:grid;gap:8px;max-width:68ch}
+.eyebrow{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font:600 clamp(26px,4vw,36px)/1.15 var(--display);margin:0;text-wrap:balance}
+header p{margin:0;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:13px;color:var(--muted);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend svg{width:30px;height:18px;flex:none}
+figure{margin:0;background:var(--surface);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.scroll{overflow-x:auto}
+.scroll svg{display:block;width:100%;min-width:720px;height:auto}
+figcaption{padding:12px 16px;border-top:1px solid var(--rule);font-size:13px;color:var(--muted)}
+.notes{display:grid;gap:10px;max-width:72ch}
+.notes h2{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+.notes ul{margin:0;padding-left:18px;display:grid;gap:6px}
+/* SVG */
+.b0{fill:var(--b0)} .b1{fill:var(--b1)} .b2{fill:var(--b2)} .bu{fill:var(--bu)} .bo{fill:var(--bo)}
+.bl{font:600 11px var(--mono);letter-spacing:.12em;fill:var(--muted)}
+.n0{fill:var(--n0);stroke:var(--p0);stroke-width:1.3}
+.n1{fill:var(--n1);stroke:var(--p1);stroke-width:1.3} .n1s{fill:var(--n1s);stroke:var(--p1);stroke-width:1.8}
+.n2{fill:var(--n2);stroke:var(--p2);stroke-width:1.3} .n2s{fill:var(--n2s);stroke:var(--p2);stroke-width:1.8}
+.cum{fill:var(--n2);stroke:var(--p2);stroke-width:1.3;stroke-dasharray:5 3}
+.ser{fill:var(--surface);stroke:var(--p2);stroke-width:1.8}
+.nu{fill:var(--surface);stroke:var(--edge);stroke-width:1.2}
+.term{fill:var(--surface);stroke:var(--fg);stroke-width:1.8}
+.stop{fill:var(--stopbg);stroke:var(--stop);stroke-width:1.5}
+.dec{fill:var(--surface);stroke:var(--fg);stroke-width:1.4}
+.edge{fill:none;stroke:var(--edge);stroke-width:1.4} .dash{stroke-dasharray:6 4}
+.ahp{fill:var(--edge)}
+.lb{font:13px var(--body);fill:var(--fg)} .strong{font-weight:600} .sub{font-size:11.5px;fill:var(--muted)}
+.qn{font:600 11.5px var(--mono);fill:var(--muted)}
+.el{font:italic 11.5px var(--body);fill:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Race Reloaded · §6 Reading protocol</div>
+    <h1>From periodical page to coded record</h1>
+    <p>Every step a text passes through, from entry into the corpus to the attribution of form and mode, and on to the series where reactivation and extinction are read.</p>
+  </header>
+
+  <div class="legend" aria-label="Legend">
+    <span><svg viewBox="0 0 30 18"><rect x="1" y="2" width="28" height="14" rx="3" fill="var(--n1)" stroke="var(--p1)" stroke-width="1.3"/></svg>Step</span>
+    <span><svg viewBox="0 0 30 18"><polygon points="15,1 29,9 15,17 1,9" fill="var(--surface)" stroke="var(--fg)" stroke-width="1.3"/></svg>Decision</span>
+    <span><svg viewBox="0 0 30 18"><rect x="1" y="2" width="28" height="14" rx="3" fill="var(--stopbg)" stroke="var(--stop)" stroke-width="1.3"/></svg>Attribution stops</span>
+    <span><svg viewBox="0 0 30 18"><rect x="1" y="2" width="28" height="14" rx="3" fill="var(--n2)" stroke="var(--p2)" stroke-width="1.3" stroke-dasharray="4 2"/></svg>Cumulative mode (added if true)</span>
+    <span><svg viewBox="0 0 30 18"><line x1="1" y1="9" x2="29" y2="9" stroke="var(--edge)" stroke-width="1.4" stroke-dasharray="5 3"/></svg>Feedback or retention</span>
+  </div>
+
+  <figure>
+    <div class="scroll">
+<svg viewBox="0 0 1000 2128" role="img" aria-label="Flowchart of the Race Reloaded reading protocol: Phase 0 selection, segmentation, Phase I leading to the form, Phase II leading to the mode, then record and series." xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ahp"/></marker></defs>
+<rect x="0" y="70" width="1000" height="230" class="b0"/>
+<text x="16" y="92" class="bl" text-anchor="start">PHASE 0 · SELECTION</text>
+<rect x="0" y="304" width="1000" height="88" class="bu"/>
+<text x="16" y="326" class="bl" text-anchor="start">UNIT</text>
+<rect x="0" y="396" width="1000" height="572" class="b1"/>
+<text x="16" y="418" class="bl" text-anchor="start">PHASE I · PHENOMENOLOGICAL</text>
+<rect x="0" y="972" width="1000" height="968" class="b2"/>
+<text x="16" y="994" class="bl" text-anchor="start">PHASE II · ONTOLOGICAL</text>
+<rect x="0" y="1944" width="1000" height="182" class="bo"/>
+<text x="16" y="1966" class="bl" text-anchor="start">OUTPUT</text>
+<rect x="330" y="18" width="340" height="38" rx="19.0" class="term"/>
+<text x="500.0" y="41.5" class="lb strong" text-anchor="middle">Digitised periodicals (15 titles)</text>
+<polyline points="500,56 500,82 330,82 330,104" class="edge" marker-end="url(#ah)"/>
+<polyline points="500,82 670,82 670,104" class="edge" marker-end="url(#ah)"/>
+<rect x="210" y="104" width="240" height="56" rx="6" class="n0"/>
+<text x="330.0" y="128.5" class="lb strong" text-anchor="middle">A · Multilingual term search</text>
+<text x="330.0" y="144.5" class="lb sub" text-anchor="middle">semantic field of race · IT DE FR</text>
+<rect x="550" y="104" width="240" height="56" rx="6" class="n0"/>
+<text x="670.0" y="128.5" class="lb strong" text-anchor="middle">B · Close reading</text>
+<text x="670.0" y="144.5" class="lb sub" text-anchor="middle">boundary drawn without racial terms</text>
+<polyline points="550,132 450,132" class="edge dash" marker-end="url(#ah)"/>
+<text x="500" y="124" class="el" text-anchor="middle">new terms</text>
+<polyline points="330,160 330,182 500,182" class="edge"/>
+<polyline points="670,160 670,182 500,182 500,200" class="edge" marker-end="url(#ah)"/>
+<polygon points="500,200.0 650.0,245 500,290.0 350.0,245" class="dec"/>
+<text x="500" y="241.5" class="lb strong" text-anchor="middle">Intercepted by</text>
+<text x="500" y="257.5" class="lb" text-anchor="middle">at least one channel?</text>
+<polyline points="650,245 780,245" class="edge" marker-end="url(#ah)"/>
+<text x="712" y="237" class="el" text-anchor="middle">No</text>
+<rect x="780" y="222" width="180" height="46" rx="6" class="stop"/>
+<text x="870.0" y="249.5" class="lb strong" text-anchor="middle">Outside the corpus</text>
+<polyline points="500,290 500,320" class="edge" marker-end="url(#ah)"/>
+<text x="512" y="309" class="el" text-anchor="start">Yes</text>
+<rect x="330" y="320" width="340" height="56" rx="6" class="nu"/>
+<text x="500.0" y="344.5" class="lb strong" text-anchor="middle">Cut into segments</text>
+<text x="500.0" y="360.5" class="lb sub" text-anchor="middle">each linked to its article and periodical</text>
+<polyline points="500,376 500,410" class="edge" marker-end="url(#ah)"/>
+<rect x="300" y="410" width="400" height="150" rx="6" class="n1"/>
+<text x="320" y="434" class="lb strong" text-anchor="start">What the segment declares</text>
+<text x="320" y="456" class="qn" text-anchor="start">Q1</text>
+<text x="364" y="456" class="lb sub" text-anchor="start">Linguistic markers</text>
+<text x="320" y="474" class="qn" text-anchor="start">Q2</text>
+<text x="364" y="474" class="lb sub" text-anchor="start">Sense · use or mention</text>
+<text x="320" y="492" class="qn" text-anchor="start">Q3</text>
+<text x="364" y="492" class="lb sub" text-anchor="start">Us / them: community and targets</text>
+<text x="320" y="510" class="qn" text-anchor="start">Q4</text>
+<text x="364" y="510" class="lb sub" text-anchor="start">Boundary: extension, permeability</text>
+<text x="320" y="528" class="qn" text-anchor="start">Q5</text>
+<text x="364" y="528" class="lb sub" text-anchor="start">Criterion of membership</text>
+<text x="320" y="546" class="qn" text-anchor="start">Q6</text>
+<text x="364" y="546" class="lb sub" text-anchor="start">Relation: hierarchy or difference</text>
+<polyline points="500,560 500,590" class="edge" marker-end="url(#ah)"/>
+<polygon points="500,590.0 640.0,635 500,680.0 360.0,635" class="dec"/>
+<text x="500" y="631.5" class="lb strong" text-anchor="middle">Q2 · Is race used</text>
+<text x="500" y="647.5" class="lb" text-anchor="middle">or only mentioned?</text>
+<polyline points="640,635 780,635" class="edge" marker-end="url(#ah)"/>
+<text x="710" y="627" class="el" text-anchor="middle">Mention</text>
+<rect x="780" y="600" width="180" height="70" rx="6" class="stop"/>
+<text x="870.0" y="623.5" class="lb strong" text-anchor="middle">Phenomenological</text>
+<text x="870.0" y="639.5" class="lb sub" text-anchor="middle">record only</text>
+<text x="870.0" y="655.5" class="lb sub" text-anchor="middle">no form · no mode</text>
+<polyline points="500,680 500,710" class="edge" marker-end="url(#ah)"/>
+<text x="512" y="699" class="el" text-anchor="start">Use</text>
+<rect x="330" y="710" width="340" height="46" rx="6" class="n1s"/>
+<text x="500.0" y="737.5" class="lb strong" text-anchor="middle">FORM · read from the declared criterion (Q5)</text>
+<polyline points="500,756 500,776 290,776 290,800" class="edge" marker-end="url(#ah)"/>
+<polyline points="500,776 710,776 710,800" class="edge" marker-end="url(#ah)"/>
+<polyline points="500,776 500,800" class="edge" marker-end="url(#ah)"/>
+<rect x="195" y="800" width="190" height="56" rx="6" class="n1"/>
+<text x="290.0" y="824.5" class="lb strong" text-anchor="middle">Biological racism</text>
+<text x="290.0" y="840.5" class="lb sub" text-anchor="middle">biological · genealogical</text>
+<rect x="405" y="800" width="190" height="56" rx="6" class="n1"/>
+<text x="500.0" y="824.5" class="lb strong" text-anchor="middle">Both forms</text>
+<text x="500.0" y="840.5" class="lb sub" text-anchor="middle">both criteria declared</text>
+<rect x="615" y="800" width="190" height="56" rx="6" class="n1"/>
+<text x="710.0" y="824.5" class="lb strong" text-anchor="middle">Non-biological racism</text>
+<text x="710.0" y="840.5" class="lb sub" text-anchor="middle">cultural · spiritual</text>
+<polyline points="290,856 290,876 500,876" class="edge"/>
+<polyline points="710,856 710,876 500,876" class="edge"/>
+<polyline points="500,856 500,896" class="edge" marker-end="url(#ah)"/>
+<rect x="260" y="896" width="480" height="56" rx="6" class="n1"/>
+<text x="500.0" y="920.5" class="lb strong" text-anchor="middle">Qualify: hierarchical or differentialist (Q6)</text>
+<text x="500.0" y="936.5" class="lb sub" text-anchor="middle">+ antisemitism label if the declared target is the Jews (Q3)</text>
+<polyline points="500,952 500,990" class="edge" marker-end="url(#ah)"/>
+<rect x="300" y="990" width="400" height="168" rx="6" class="n2"/>
+<text x="320" y="1014" class="lb strong" text-anchor="start">What the argument does</text>
+<text x="320" y="1036" class="qn" text-anchor="start">Q7</text>
+<text x="364" y="1036" class="lb sub" text-anchor="start">Who is actually excluded, incl. coded targets</text>
+<text x="320" y="1054" class="qn" text-anchor="start">Q8</text>
+<text x="364" y="1054" class="lb sub" text-anchor="start">Is the boundary closed by origin?</text>
+<text x="320" y="1072" class="qn" text-anchor="start">Q9</text>
+<text x="364" y="1072" class="lb sub" text-anchor="start">Which criterion does the argument need?</text>
+<text x="320" y="1090" class="qn" text-anchor="start">Q10</text>
+<text x="364" y="1090" class="lb sub" text-anchor="start">Does it rank or separate in practice?</text>
+<text x="320" y="1108" class="qn" text-anchor="start">Q11</text>
+<text x="364" y="1108" class="lb sub" text-anchor="start">Is a pre-1945 doctrine recognisable?</text>
+<text x="320" y="1126" class="qn" text-anchor="start">Q12</text>
+<text x="364" y="1126" class="lb sub" text-anchor="start">Has the community or target shifted?</text>
+<text x="320" y="1144" class="qn" text-anchor="start">Q13</text>
+<text x="364" y="1144" class="lb sub" text-anchor="start">Is race fused with a contiguous concept?</text>
+<polyline points="500,1158 500,1190" class="edge" marker-end="url(#ah)"/>
+<polygon points="500,1190.0 650.0,1235 500,1280.0 350.0,1235" class="dec"/>
+<text x="500" y="1231.5" class="lb strong" text-anchor="middle">Q8 · Boundary</text>
+<text x="500" y="1247.5" class="lb" text-anchor="middle">closed by origin?</text>
+<polyline points="650,1235 780,1235" class="edge" marker-end="url(#ah)"/>
+<text x="714" y="1227" class="el" text-anchor="middle">No · open</text>
+<rect x="780" y="1200" width="180" height="70" rx="6" class="stop"/>
+<text x="870.0" y="1223.5" class="lb strong" text-anchor="middle">Race not operative</text>
+<text x="870.0" y="1239.5" class="lb sub" text-anchor="middle">attribution stops</text>
+<text x="870.0" y="1255.5" class="lb sub" text-anchor="middle">segment retained</text>
+<polyline points="350,1235 130,1235 130,1330" class="edge" marker-end="url(#ah)"/>
+<text x="250" y="1227" class="el" text-anchor="middle">Unclear</text>
+<polyline points="500,1280 500,1310" class="edge" marker-end="url(#ah)"/>
+<text x="512" y="1299" class="el" text-anchor="start">Yes</text>
+<polygon points="500,1310.0 650.0,1355 500,1400.0 350.0,1355" class="dec"/>
+<text x="500" y="1351.5" class="lb strong" text-anchor="middle">Evidence threshold met</text>
+<text x="500" y="1367.5" class="lb" text-anchor="middle">in segment or co-text?</text>
+<polyline points="350,1355 220,1355" class="edge" marker-end="url(#ah)"/>
+<text x="285" y="1347" class="el" text-anchor="middle">No</text>
+<rect x="40" y="1330" width="180" height="50" rx="6" class="stop"/>
+<text x="130.0" y="1359.5" class="lb strong" text-anchor="middle">Mode undetermined</text>
+<polyline points="500,1400 500,1430" class="edge" marker-end="url(#ah)"/>
+<text x="512" y="1419" class="el" text-anchor="start">Yes</text>
+<polygon points="500,1430.0 650.0,1475 500,1520.0 350.0,1475" class="dec"/>
+<text x="500" y="1471.5" class="lb strong" text-anchor="middle">Q11 · Pre-1945 doctrine</text>
+<text x="500" y="1487.5" class="lb" text-anchor="middle">recognisable?</text>
+<polyline points="500,1520 500,1540 290,1540 290,1570" class="edge" marker-end="url(#ah)"/>
+<polyline points="500,1540 710,1540 710,1570" class="edge" marker-end="url(#ah)"/>
+<polyline points="500,1540 500,1570" class="edge" marker-end="url(#ah)"/>
+<text x="298" y="1560" class="el" text-anchor="start">intact</text>
+<text x="508" y="1560" class="el" text-anchor="start">in fragments</text>
+<text x="718" y="1560" class="el" text-anchor="start">none</text>
+<rect x="195" y="1570" width="190" height="56" rx="6" class="n2"/>
+<text x="290.0" y="1594.5" class="lb strong" text-anchor="middle">Continuity</text>
+<text x="290.0" y="1610.5" class="lb sub" text-anchor="middle">doctrine preserved intact</text>
+<rect x="405" y="1570" width="190" height="56" rx="6" class="n2"/>
+<text x="500.0" y="1594.5" class="lb strong" text-anchor="middle">Fragment</text>
+<text x="500.0" y="1610.5" class="lb sub" text-anchor="middle">elements without their frame</text>
+<rect x="615" y="1570" width="190" height="56" rx="6" class="n2"/>
+<text x="710.0" y="1594.5" class="lb strong" text-anchor="middle">Regeneration</text>
+<text x="710.0" y="1610.5" class="lb sub" text-anchor="middle">new, self-sufficient criterion</text>
+<polyline points="290,1626 290,1646 500,1646" class="edge"/>
+<polyline points="710,1626 710,1646 500,1646" class="edge"/>
+<polyline points="500,1626 500,1666" class="edge" marker-end="url(#ah)"/>
+<rect x="330" y="1666" width="340" height="40" rx="6" class="n2s"/>
+<text x="500.0" y="1690.5" class="lb strong" text-anchor="middle">BASE MODE · exactly one per segment</text>
+<polyline points="500,1706 500,1730 270,1730 270,1756" class="edge" marker-end="url(#ah)"/>
+<polyline points="500,1730 730,1730 730,1756" class="edge" marker-end="url(#ah)"/>
+<polyline points="500,1730 500,1756" class="edge" marker-end="url(#ah)"/>
+<rect x="150" y="1756" width="240" height="84" rx="6" class="cum"/>
+<text x="270.0" y="1786.5" class="lb strong" text-anchor="middle">+ Latency</text>
+<text x="270.0" y="1802.5" class="lb sub" text-anchor="middle">if Q3↔Q7, Q4↔Q8, Q5↔Q9</text>
+<text x="270.0" y="1818.5" class="lb sub" text-anchor="middle">or Q6↔Q10 diverge · per dimension</text>
+<rect x="410" y="1756" width="180" height="84" rx="6" class="cum"/>
+<text x="500.0" y="1794.5" class="lb strong" text-anchor="middle">+ Migration</text>
+<text x="500.0" y="1810.5" class="lb sub" text-anchor="middle">if Q12 = yes</text>
+<rect x="610" y="1756" width="240" height="84" rx="6" class="cum"/>
+<text x="730.0" y="1794.5" class="lb strong" text-anchor="middle">+ Hybridisation</text>
+<text x="730.0" y="1810.5" class="lb sub" text-anchor="middle">if Q13 = yes</text>
+<polyline points="270,1840 270,1860 500,1860" class="edge"/>
+<polyline points="730,1840 730,1860 500,1860" class="edge"/>
+<polyline points="500,1840 500,1880" class="edge" marker-end="url(#ah)"/>
+<rect x="310" y="1880" width="380" height="42" rx="21.0" class="n2s"/>
+<text x="500.0" y="1905.5" class="lb strong" text-anchor="middle">MODE = base mode + any cumulative modes</text>
+<polyline points="500,1922 500,1960" class="edge" marker-end="url(#ah)"/>
+<rect x="240" y="1960" width="520" height="56" rx="6" class="nu"/>
+<text x="500.0" y="1984.5" class="lb strong" text-anchor="middle">RECORD</text>
+<text x="500.0" y="2000.5" class="lb sub" text-anchor="middle">bibliographic data · Q1–Q13 · form · mode · anchor passages · certainty</text>
+<polyline points="500,2016 500,2050" class="edge" marker-end="url(#ah)"/>
+<rect x="300" y="2050" width="400" height="60" rx="6" class="ser"/>
+<text x="500.0" y="2076.5" class="lb strong" text-anchor="middle">SERIES · periodical, author, strand</text>
+<text x="500.0" y="2092.5" class="lb sub" text-anchor="middle">reactivation · extinction (never from one segment)</text>
+<polyline points="870,1270 870,2080 700,2080" class="edge dash" marker-end="url(#ah)"/>
+<text x="860" y="2034" class="el" text-anchor="end">evidence for</text>
+<text x="860" y="2048" class="el" text-anchor="end">extinction</text>
+</svg>
+    </div>
+    <figcaption>Phase I yields the form from what the text declares; Phase II yields the mode from what the argument does. Latency is the gap between the two, compared dimension by dimension.</figcaption>
+  </figure>
+
+  <section class="notes">
+    <h2>Points to settle</h2>
+    <ul>
+      <li>The paper does not fix where the evidence threshold sits. Here it comes after Q8, so an open boundary is recorded as “race not operative” even when evidence is thin.</li>
+      <li>The “Unclear” branch at Q8 is an addition of the coding grid: a boundary that cannot be judged sends the segment to “mode undetermined”.</li>
+      <li>Segments where race is not operative are kept, because extinction can only be shown by segments on the same theme in which race no longer works.</li>
+      <li>Mentioned-only segments receive a phenomenological record; whether they also count in the series is not stated in the paper.</li>
+    </ul>
+  </section>
+</div>
+
+</body></html>
